@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriTrace</title>
+  <style>
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-image: url('https://images6.alphacoders.com/680/680563.jpg');
+      background-size: cover;
+      background-position: center;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      text-align: center;
+      font-family: Arial, sans-serif;
+    }
+
+
+    .content {
+      background-color:grey;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+
+    h1 {
+      font-size: 3em;
+      margin: 0;
+    }
+
+    p {
+      font-size: 1.5em;
+      margin: 10px 0 0;
+    }
+    .content:hover{
+      opacity: 0.9;
+      transform: scale(1.1);
+      transition-duration: 2s;
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1>AgriChain</h1>
+    <p>Strengthening Supply Chain Transparency</p>
+  </div>
+  <script>
+  function redirectToLogin() {
+    setTimeout(function() {
+        window.location.href = 'login.html';
+    }, 5000);
+
+}
+window.onload = redirectToLogin;
+</script>
+</body>
+</html>

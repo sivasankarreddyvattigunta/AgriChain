@@ -1,0 +1,91 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-image: url('https://www.transparenttextures.com/patterns/brick-wall.png');
+.registration-container {
+  background-color: #282828;
+  padding: 30px;
+  border-radius: 15px;
+
+  box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+  width: 350px;
+  text-align: center;
+  animation: fadeIn 1.5s ease-in-out;
+}
+h1 {
+  color: #f9a825;
+  font-size: 24px;
+  margin-bottom: 20px;
+  animation: slideDown 1.5s ease-in-out;
+}
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 15px;
+  font-size: 16px;
+}
+input[type="text"], input[type="file"], input[type="email"], input[type="password"], input[type="number"], select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: 2px solid #e4e3e1;
+  background-color: #333;
+  color: #fff;
+  font-size: 16px;
+
+}
+.submit-button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  background-color: #f9a825;
+  color: #1e1e1e;
+  cursor: pointer;
+  font-weight: bold;
+  animation: buttonGlow 1.5s infinite;
+}
+.submit-button:hover {
+  background-color: #ffc107;
+}
+.message {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #4caf50;
+  display: none;
+  animation: fadeIn 1s forwards;
+}
+@keyframes buttonGlow {
+  0%, 100% {
+      box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+  }
+  50% {
+      box-shadow: 0 0 20px rgba(255, 193, 7, 1);
+  }
+}
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+  }
+  to {
+      opacity: 1;
+  }
+}
+@keyframes slideDown {
+  from {
+      transform: translateY(-20px);
+      opacity: 0;
+  }
+  to {
+      transform: translateY(0);
+      opacity: 1;
+  }
+}

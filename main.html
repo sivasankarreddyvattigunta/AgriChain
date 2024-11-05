@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Donation & Product Tracking System</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: grey;
+          overflow-x: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background-image: url('https://www.transparenttextures.com/patterns/brick-wall.png');
+      }
+      .profile-container {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+      }
+      .profile-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: #ffc107;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          color: #282828;
+          cursor: pointer;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .dropdown-content {
+          display: none;
+          flex-direction: column;
+          margin-top: 10px;
+          background-color: #282828;
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          width: 150px;
+      }
+      .dropdown-content a {
+          color: #fff;
+          padding: 10px;
+          text-decoration: none;
+          display: block;
+          text-align: center;
+          background-color: #3a3a3a;
+          border-bottom: 1px solid #444;
+          transition: background-color 0.3s;
+      }
+      .dropdown-content a:hover {
+          background-color: #ffc107;
+          color: #282828;
+      }
+      .profile-container:hover .dropdown-content {
+          display: flex;
+      }
+      .search-container {
+        margin: 20px 0;
+        width: 40%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .search-input {
+        width: calc(100% - 50%);
+        padding: 10px;
+        border-radius: 6px;
+        border: none;
+        font-size: 16px;
+        margin-right: -5px;
+      }
+      .search-button {
+        padding: 1.8%;
+        border: none;
+        margin-right: 10%;
+        border-radius: 6px;
+        background-color: #ffc107;
+        cursor: pointer;
+        font-weight: bold;
+        color: #282828;
+      }
+      .content-container {
+          width: 80%;
+          max-width: 900px;
+          overflow: hidden;
+          border-radius: 15px;
+          text-align: center;
+          padding: 20px;
+          background-color: #282828;
+          color: #fff;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          margin-top: 20px;
+      }
+      .slideshow-wrapper {
+          width: 100%;
+          overflow: hidden;
+          border-radius: 10px;
+          margin-top: 20px;
+      }
+      .slideshow {
+          display: flex;
+          transition: transform 1s ease-in-out;
+      }
+      .slide {
+          min-width: 100%;
+          padding: 20px;
+          box-sizing: border-box;
+          font-size: 1.2em;
+          background-color: #444;
+      }
+      .section-title {
+          font-size: 1.1em;
+          color: #ffc107;
+          margin-top: 20px;
+          text-transform: uppercase;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/algosdk@1.13.1/dist/browser/algosdk.min.js"></script>
+</head>
+<body>
+
+    <div class="profile-container">
+        <div class="profile-icon">A</div>
+        <div class="dropdown-content">
+            <a href="./Registration.html">Registration</a>
+            <a href="./product.html">Product Info Update</a>
+            <a href="./main.html">Product Search </a>
+            <a href="./role.html">Mediator Escrow</a>
+            <a href="./donate.html">Donation</a>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="productId" class="search-input" placeholder="Enter Product ID">
+        <button class="search-button" onclick="searchProduct()">Search</button>
+    </div>
+
+    <div class="content-container">
+        <div class="slideshow-wrapper">
+            <div class="slideshow" id="slideshow">
+                <div class="slide">
+                    <h1>Welcome to the Food Donation & Product Tracking System</h1>
+                    <p>Our application bridges the gap between farmers, mediators, and donation organizations to ensure food products reach the right places efficiently.</p>
+                </div>
+                <div class="slide">
+                    <div class="section-title"><h1>Agriculture and Food Usage</h1></div>
+                    <p>Agriculture forms the backbone of food supply, providing essential resources for our communities. Through proper tracking and collaboration, we can minimize inefficiencies.</p>
+                </div>
+                <div class="slide">
+                    <div class="section-title"><h1>Importance of Food and Donation</h1></div>
+                    <p>Food security is essential to the health and well-being of every individual. Donations help redistribute excess food to those in need, reducing waste and aiding communities.</p>
+                </div>
+                <div class="slide">
+                    <div class="section-title"><h1>Chain and Transparency</h1></div>
+                    <p>Our platform ensures transparency across the food supply chain, allowing accountability and trust among farmers, mediators, and donation organizations.</p>
+                </div>
+            </div>
+        </div>
+        <div id="productDetails"></div>
+    </div>
+
+    <script>
+        const algodToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const algodServer = 'http://localhost';
+        const algodPort = 4001;
+        const appId = 1002;
+
+        const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+
+        async function searchProduct() {
+            const productId = document.getElementById("productId").value;
+            if (!productId) {
+                alert("Please enter a product ID.");
+                return;
+            }
+
+            try {
+                const response = await algodClient.getApplicationByID(appId).do();
+                const globalState = response.params['global-state'];
+
+                let productDetails = "";
+                globalState.forEach(item => {
+                    const key = atob(item.key);
+                    const value = item.value.uint || atob(item.value.bytes);
+
+                    if (key.includes(productId)) {
+                        productDetails += `<p><strong>${key}:</strong> ${value}</p>`;
+                    }
+                });
+                const productDetailsDiv = document.getElementById("productDetails");
+                productDetailsDiv.innerHTML = productDetails || `<p>No details found for Product ID: ${productId}</p>`;
+            } catch (error) {
+                console.error("Error fetching product details:", error);
+                alert("Error fetching product details. Please try again later.");
+            }
+        }
+
+        let slideIndex = 0;
+        const slideshow = document.getElementById("slideshow");
+
+        function showSlides() {
+            slideIndex = (slideIndex + 1) % slideshow.children.length;
+            slideshow.style.transform = `translateX(-${slideIndex * 100}%)`;
+        }
+
+        setInterval(showSlides, 3000);
+    </script>
+
+<footer style="width: 100%; background-color: #282828; color: #fff; padding: 20px; text-align: center; position: fixed; bottom: 0; left: 0;">
+  <div style="margin-bottom: 10px;">
+      <a href="./index.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Home</a>
+      <a href="./Registration.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Registration</a>
+      <a href="./productregister.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Registration</a>
+      <a href="./product.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Info</a>
+      <a href="./main.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Search</a>
+      <a href="./role.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Escrow</a>
+      <a href="./donate.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Donation</a>
+  </div>
+  <div style="margin-top: 10px;">
+      <a href="https://www.linkedin.com/in/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+          <i class="fab fa-linkedin"></i> LinkedIn
+      </a>
+      <a href="https://github.com/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+          <i class="fab fa-github"></i> GitHub
+      </a>
+      <a href="mailto:sivasankarreddyvattigunta@gmail.com" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+          <i class="fas fa-envelope"></i> Email
+      </a>
+  </div>
+</footer>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+
+</body>
+</html>

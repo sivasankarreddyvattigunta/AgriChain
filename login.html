@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('https://www.transparenttextures.com/patterns/brick-wall.png');
+        }
+        .login-container {
+            background-color: #282828;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 1.5s ease-in-out;
+            opacity: 1;
+        }
+        h1 {
+            color: #f9a825;
+            font-size: 24px;
+            margin-bottom: 20px;
+            animation: slideDown 1.5s ease-in-out;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 2px solid #fff;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+        }
+        .submit-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            background-color: #f9a825;
+            color: #1e1e1e;
+            cursor: pointer;
+            font-weight: bold;
+            animation: buttonGlow 1.5s infinite;
+        }
+        .submit-button:hover {
+            background-color: #ffc107;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #4caf50;
+            display: none;
+            animation: fadeIn 1s forwards;
+        }
+        @keyframes buttonGlow {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 193, 7, 1);
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .register {
+            color: #f9a825;
+            margin-top: 10px;
+            display: block;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .register:hover {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1><i class="fas fa-sign-in-alt"></i> Login</h1>
+
+        <form id="loginForm">
+            <label for="email">Email</label>
+            <input type="email" id="email" required placeholder="Enter your email">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" required placeholder="Enter your password">
+
+            <button type="submit" class="submit-button">Login</button>
+            <a href="./Registration.html" class="register">Sign up</a>
+            <p class="message" id="successMessage">Login successful!</p>
+            <p class="message" id="errorMessage">Invalid credentials. Please try again.</p>
+        </form>
+    </div>
+
+    <footer style="width: 100%; background-color: #282828; color: #fff; padding: 20px; text-align: center; position: fixed; bottom: 0; left: 0;">
+      <div style="margin-bottom: 10px;">
+          <a href="./index.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Home</a>
+          <a href="./Registration.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Registration</a>
+          <a href="./productregister.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Registration</a>
+          <a href="./product.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Info</a>
+          <a href="./main.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Search</a>
+          <a href="./role.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Escrow</a>
+          <a href="./donate.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Donation</a>
+      </div>
+      <div style="margin-top: 10px;">
+          <a href="https://www.linkedin.com/in/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fab fa-linkedin"></i> LinkedIn
+          </a>
+          <a href="https://github.com/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fab fa-github"></i> GitHub
+          </a>
+          <a href="mailto:sivasankarreddyvattigunta@gmail.com" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fas fa-envelope"></i> Email
+          </a>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/algosdk@1.14.1/dist/browser/algosdk.min.js"></script>
+    <script>
+        async function connectWallet() {
+            if (typeof AlgoSigner !== 'undefined') {
+                try {
+                    await AlgoSigner.connect();
+                    const accounts = await AlgoSigner.accounts({ ledger: 'TestNet' });
+                    return accounts[0].address;
+                } catch (error) {
+                    console.error("Wallet connection failed:", error);
+                    alert("Failed to connect wallet. Please try again.");
+                }
+            } else {
+                alert('Please install the Algorand supported wallet extension.');
+            }
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const userWalletAddress = await connectWallet();
+
+
+            const credentialsValid = email !== "" && password !== "";
+
+            if (credentialsValid && userWalletAddress) {
+
+                const associatedWalletAddress = await getWalletAddressByEmail(email);
+
+                if (associatedWalletAddress === userWalletAddress) {
+                    document.getElementById("successMessage").style.display = "block";
+                    setTimeout(() => {
+                        document.getElementById("successMessage").style.display = "none";
+                        window.location.href = "main.html";
+                    }, 2000);
+                } else {
+                    document.getElementById("errorMessage").style.display = "block";
+                    setTimeout(() => {
+                        document.getElementById("errorMessage").style.display = "none";
+                    }, 5000);
+                }
+            } else {
+                document.getElementById("errorMessage").style.display = "block";
+                setTimeout(() => {
+                    document.getElementById("errorMessage").style.display = "none";
+                }, 5000);
+            }
+        });
+
+        async function getWalletAddressByEmail(email) {
+
+            return "user-wallet-address";
+        }
+    </script>
+</body>
+</html>

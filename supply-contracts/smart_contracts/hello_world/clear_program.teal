@@ -1,0 +1,229 @@
+#pragma version 6
+
+int 0
+store 0
+
+txn ApplicationID
+int 0
+==
+bnz register_user
+
+txn OnCompletion
+int OptIn
+==
+bnz product_register
+
+txn OnCompletion
+int NoOp
+==
+bnz handle_call
+
+err
+
+register_user:
+    byte "wallet"
+    txn Sender
+    app_local_put
+
+    byte "name"
+    txn ApplicationArgs 1
+    app_local_put
+
+    byte "email"
+    txn ApplicationArgs 2
+    app_local_put
+
+    byte "role"
+    txn ApplicationArgs 3
+    app_local_put
+
+    byte "is_registered"
+    int 1
+    app_global_put
+
+    int 1
+    return
+
+product_register:
+    byte "wallet"
+    app_local_get
+    bnz product_id_gen
+
+    err
+
+product_id_gen:
+    byte "ProductID"
+    txn Sender
+    txn ApplicationArgs 1
+    txn ApplicationArgs 2
+    concat
+    concat
+    app_local_put
+
+    int 1
+    return
+
+handle_call:
+    txn NumAppArgs
+    int 12
+    ==
+    assert
+
+    byte "is_registered"
+    app_global_get
+    int 1
+    ==
+    bnz role_specific_actions
+
+    int 0
+    return
+
+role_specific_actions:
+    byte "role"
+    app_local_get
+    byte "mediator"
+    ==
+    bnz mediator_actions
+
+    byte "role"
+    app_local_get
+    byte "wholesaler"
+    ==
+    bnz wholesaler_inventory_update
+
+    byte "role"
+    app_local_get
+    byte "retailer"
+    ==
+    bnz retailer_inventory_update
+
+    byte "role"
+    app_local_get
+    byte "manufacturer"
+    ==
+    bnz manufacturer_inventory_update
+
+err
+
+mediator_actions:
+   byte "farmerAccount"
+   txna ApplicationArgs 1
+   app_global_put
+
+   byte "releaseAmount"
+   txna ApplicationArgs 2
+   btoi
+   app_global_put
+
+   int 1
+   return
+
+wholesaler_inventory_update:
+   byte "wholesalerProductID"
+   txna ApplicationArgs 1
+   app_global_put
+
+   byte "wholesalerStockQuantity"
+   txna ApplicationArgs 2
+   btoi
+   app_global_put
+
+   byte "wholesalerCurrentPrice"
+   txna ApplicationArgs 3
+   btoi
+   app_global_put
+
+   int 1
+   return
+
+retailer_inventory_update:
+   byte "retailerProductID"
+   txna ApplicationArgs 1
+   app_global_put
+
+   byte "retailerStockQuantity"
+   txna ApplicationArgs 2
+   btoi
+   app_global_put
+
+   byte "retailerCurrentPrice"
+   txna ApplicationArgs 3
+   btoi
+   app_global_put
+
+   int 1
+   return
+
+manufacturer_inventory_update:
+   byte "manufacturerProductID"
+   txna ApplicationArgs 1
+   app_global_put
+
+   byte "manufacturerStockQuantity"
+   txna ApplicationArgs 2
+   btoi
+   app_global_put
+
+   byte "manufacturerCurrentPrice"
+   txna ApplicationArgs 3
+   btoi
+   app_global_put
+
+   int 1
+   return
+
+donation:
+     byte "donationAmount"
+     txna ApplicationArgs 1
+     btoi
+     app_global_put
+
+     byte "donorAccount"
+     txn Sender
+     app_global_put
+
+     int 1
+     return
+
+update_product_info:
+     byte "product_name"
+     txna ApplicationArgs 1
+     app_global_put
+
+     byte "speciality"
+     txna ApplicationArgs 2
+     app_global_put
+
+     byte "product_id"
+     txna ApplicationArgs 3
+     app_global_put
+
+     byte "lifespan"
+     txna ApplicationArgs 4
+     app_global_put
+
+     byte "quality"
+     txna ApplicationArgs 5
+     app_global_put
+
+     byte "expiry_date"
+     txna ApplicationArgs 6
+     btoi
+     app_global_put
+
+     byte "price_last_year"
+     txna ApplicationArgs 7
+     btoi
+     app_global_put
+
+     byte "price_two_years_ago"
+     txna ApplicationArgs 8
+     btoi
+     app_global_put
+
+     int 1
+     return
+
+err:
+      int 0
+      return  

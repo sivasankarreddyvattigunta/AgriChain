@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriChain Escrow Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: silver;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 120vh;
+            background-image: url('https://www.transparenttextures.com/patterns/brick-wall.png');
+            margin: 0;
+        }
+        .escrow-container {
+            background-color: #282828;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+            width: 100%;
+            width: 450px;
+            height:auto;
+        }
+        h1, h2 {
+            color: #f9a825;
+            font-size: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 14px;
+            display: block;
+            color: #f9a825;
+        }
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 2px solid #f9a825;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+        }
+        .submit-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background-color: #f9a825;
+            color: #1e1e1e;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #ffc107;
+        }
+        .balance-display, .alert-message {
+            font-size: 16px;
+            color: #f9a825;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .connect-wallet {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background-color: #f9a825;
+            color: #1e1e1e;
+            border-radius: 6px;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<button class="connect-wallet" onclick="connectWallet()">Connect Wallet</button>
+
+<div class="escrow-container">
+    <h1>Escrow Management</h1>
+    <label for="roleSelect">Select Your Role:</label>
+    <select id="roleSelect" onchange="updateFormBasedOnRole()">
+        <option value="mediator">Mediator</option>
+        <option value="wholesaler">Wholesaler</option>
+        <option value="retailer">Retailer</option>
+        <option value="manufacturer">Manufacturer</option>
+    </select>
+
+    <div class="balance-display" id="escrowBalance">
+        Escrow Balance: ₹ <span id="balanceAmount">0</span>
+    </div>
+
+    <h2>Deposit Funds</h2>
+    <form id="depositForm" onsubmit="depositFunds(event)">
+        <label for="depositAmount">Amount to Deposit</label>
+        <input type="number" id="depositAmount" placeholder="Enter amount" required>
+        <button type="submit" class="submit-button">Deposit</button>
+    </form>
+
+    <div id="mediatorForms">
+        <h2>Send Transaction To</h2>
+        <form id="releaseFundsForm" onsubmit="releaseFunds(event)">
+            <label for="farmerAccount">Account</label>
+            <input type="text" id="farmerAccount" placeholder="Enter Account Address" required>
+            <label for="releaseAmount">Amount to Transfer</label>
+            <input type="number" id="releaseAmount" placeholder="Enter amount" required>
+            <button type="submit" class="submit-button">Release Funds</button>
+        </form>
+    </div>
+
+    <div id="additionalForms"></div>
+
+    <p class="alert-message" id="successMessage" style="display:none;">Transaction successful!</p>
+    <p class="alert-message" id="errorMessage" style="display:none;">An error occurred. Please try again.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/algosdk@1.14.1/dist/browser/algosdk.min.js"></script>
+<script>
+    const appId = 1002;
+    const server = "http://localhost";
+    const port = 4001;
+    const token = { "X-Algo-API-Token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" };
+    let algodClient = new algosdk.Algodv2(token, server, port);
+    let escrowBalance = 0;
+
+    function connectWallet() {
+        if (typeof AlgoSigner !== 'undefined') {
+            AlgoSigner.connect().then(() => {
+                return AlgoSigner.accounts({ ledger: 'TestNet' });
+            }).then(accounts => {
+                console.log("Wallet Connected:", accounts[0].address);
+            }).catch(error => {
+                console.error("Wallet connection failed:", error);
+            });
+        } else {
+            alert('Please install Algorand supported wallet extension to continue');
+        }
+    }
+
+    function updateFormBasedOnRole() {
+        const role = document.getElementById("roleSelect").value;
+        const mediatorForms = document.getElementById("mediatorForms");
+        const additionalForms = document.getElementById("additionalForms");
+
+        additionalForms.innerHTML = '';
+
+        if (role === 'mediator') {
+            mediatorForms.style.display = 'block';
+        } else {
+            mediatorForms.style.display = 'none';
+            const title = document.createElement('h2');
+            title.innerText = `${role.charAt(0).toUpperCase() + role.slice(1)} Inventory Update`;
+            const inventoryForm = document.createElement('form');
+            inventoryForm.onsubmit = (event) => updateInventory(event, role);
+            const inventoryFields = `
+                <label for="${role}ProductID">Product ID</label>
+                <input type="text" id="${role}ProductID" placeholder="Enter Product ID" required>
+                <label for="${role}StockQuantity">Stock Quantity</label>
+                <input type="number" id="${role}StockQuantity" placeholder="Enter Quantity" required>
+                <label for="${role}CurrentPrice">Current Price</label>
+                <input type="number" id="${role}CurrentPrice" placeholder="Enter Price per Unit" required>
+                <button type="submit" class="submit-button">Update Inventory</button>`;
+            inventoryForm.innerHTML = inventoryFields;
+            additionalForms.appendChild(title);
+            additionalForms.appendChild(inventoryForm);
+        }
+    }
+
+    async function depositFunds(event) {
+        event.preventDefault();
+        const depositAmount = parseFloat(document.getElementById("depositAmount").value);
+        try {
+            await algodClient.applicationNoOpTxn({ from: walletAddress, appIndex: appId, note: `Deposit: ${depositAmount}` });
+            escrowBalance += depositAmount;
+            updateBalanceDisplay();
+            displaySuccessMessage("Deposit successful!");
+            document.getElementById("depositForm").reset();
+        } catch (error) {
+            console.error(error);
+            displayErrorMessage("Deposit failed. Try again.");
+        }
+    }
+
+    function updateBalanceDisplay() {
+        document.getElementById("balanceAmount").innerText = escrowBalance.toFixed(2);
+    }
+
+    function displaySuccessMessage(message) {
+        const successMessage = document.getElementById("successMessage");
+        successMessage.innerText = message;
+        successMessage.style.display = "block";
+        setTimeout(() => { successMessage.style.display = "none"; }, 5000);
+    }
+
+    function displayErrorMessage(message) {
+        const errorMessage = document.getElementById("errorMessage");
+        errorMessage.innerText = message;
+        errorMessage.style.display = "block";
+        setTimeout(() => { errorMessage.style.display = "none"; }, 5000);
+    }
+
+    updateFormBasedOnRole();
+</script>
+<footer style="margin-top:10px; width: 100%; background-color: #282828; color: #fff; padding: 20px; text-align: center;position: fixed; bottom: 0; left: 0;">
+  <div>
+      <a href="./index.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Home</a>
+      <a href="./Registration.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Registration</a>
+      <a href="./productregister.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Registration</a>
+      <a href="./product.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Info</a>
+      <a href="./main.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Search</a>
+      <a href="./role.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Escrow</a>
+      <a href="./donate.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Donation</a>
+  </div>
+  <div style="margin-top: 10px;">
+      <a href="https://www.linkedin.com/in/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+          <i class="fab fa-linkedin"></i> LinkedIn
+      </a>
+      <a href="https://github.com/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+          <i class="fab fa-github"></i> GitHub
+      </a>
+      <a href="mailto:sivasankarreddyvattigunta@gmail.com" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+          <i class="fas fa-envelope"></i> Email
+      </a>
+  </div>
+</footer>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+</body>
+</html>

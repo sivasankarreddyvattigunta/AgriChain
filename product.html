@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Information Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            background-image: url('https://www.transparenttextures.com/patterns/brick-wall.png');
+            margin: 0;
+            padding: 0;
+            display: flex;
+
+            position: relative;
+            justify-content: space-between;
+        }
+        .connect-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #f9a825;
+            color: #1e1e1e;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .connect-button:hover {
+            background-color: #ffc107;
+        }
+        .product-update-container {
+            background-color: #282828;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
+            width:27%;
+            margin: 50px 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #f9a825;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        input[type="text"], input[type="number"], input[type="date"], input[type="file"] {
+            width: 75%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 8px;
+            border: 2px solid #f9a825;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+        }
+        .submit-button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            background-color: #f9a825;
+            color: #1e1e1e;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #ffc107;
+        }
+        .alert-message, .success-message {
+            margin-top: 20px;
+            font-size: 16px;
+            display: none;
+        }
+        .alert-message { color: #ff5252; }
+        .success-message { color: #4caf50; }
+    </style>
+</head>
+<body>
+    <button class="connect-button" onclick="connectWallet()">Connect Wallet</button>
+
+    <div class="product-update-container">
+        <h1>Update Product Information</h1>
+        <form id="productUpdateForm">
+            <label for="productName">Product Name</label>
+            <input type="text" id="productName" required placeholder="Enter Product Name">
+
+            <label for="speciality">Speciality</label>
+            <input type="text" id="speciality" required placeholder="Enter Product Speciality">
+
+            <label for="productId">Product ID</label>
+            <input type="text" id="productId" required placeholder="Enter Product ID">
+
+            <label for="lifespan">Lifespan</label>
+            <input type="text" id="lifespan" required placeholder="Enter Expected Lifespan">
+
+            <label for="quality">Quality Level</label>
+            <input type="text" id="quality" required placeholder="Enter Quality Level">
+
+            <label for="expiry">Expiry Date</label>
+            <input type="date" id="expiry" required>
+
+            <label for="priceYear1">Price Last Year</label>
+            <input type="number" id="priceYear1" required placeholder="Enter Price Last Year">
+
+            <label for="priceYear2">Price Two Years Ago</label>
+            <input type="number" id="priceYear2" required placeholder="Enter Price Two Years Ago">
+
+            <label for="currentPrice">Current Price</label>
+            <input type="number" id="currentPrice" required placeholder="Enter Current Price">
+
+            <label for="estimatedPrice">Estimated Future Price</label>
+            <input type="number" id="estimatedPrice" required placeholder="Enter Estimated Price">
+
+            <label for="videoUpload">Upload Video (will be processed to extract text)</label>
+            <input type="file" id="videoUpload" accept="video/*">
+
+            <button type="submit" class="submit-button">Update Product</button>
+
+            <p class="alert-message" id="alertMessage">Price Alert: Current price exceeds 120% of the average price over the past two years.</p>
+            <p class="success-message" id="successMessage">Product information updated successfully!</p>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/algosdk@1.14.1/dist/browser/algosdk.min.js"></script>
+    <script>
+        const algodToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        const algodServer = 'http://localhost';
+        const algodPort = 4001;
+        const appId = 1002;
+
+        const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+        let userWalletAddress;
+
+        async function connectWallet() {
+            if (typeof AlgoSigner !== 'undefined') {
+                try {
+                    await AlgoSigner.connect();
+                    const accounts = await AlgoSigner.accounts({ ledger: 'TestNet' });
+                    userWalletAddress = accounts[0].address;
+                    alert(`Wallet Connected: ${userWalletAddress}`);
+                } catch (error) {
+                    console.error("Wallet connection failed:", error);
+                    alert("Failed to connect wallet. Please try again.");
+                }
+            } else {
+                alert('Please install Algorand supported wallet extension to continue');
+            }
+        }
+        document.getElementById("videoUpload").addEventListener("change", async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("videoFile", file);
+    const response = await fetch("/transcribe-video", {
+        method: "POST",
+        body: formData
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        videoText = data.transcription;
+        console.log("Transcription:", videoText);
+    } else {
+        console.error("Failed to transcribe video");
+    }
+});
+
+
+        document.getElementById("productUpdateForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const productName = document.getElementById("productName").value;
+            const speciality = document.getElementById("speciality").value;
+            const productId = document.getElementById("productId").value;
+            const lifespan = document.getElementById("lifespan").value;
+            const quality = document.getElementById("quality").value;
+            const expiry = document.getElementById("expiry").value;
+            const priceYear1 = parseFloat(document.getElementById("priceYear1").value);
+            const priceYear2 = parseFloat(document.getElementById("priceYear2").value);
+            const currentPrice = parseFloat(document.getElementById("currentPrice").value);
+            const estimatedPrice = parseFloat(document.getElementById("estimatedPrice").value);
+            const avgPrice = (priceYear1 + priceYear2) / 2;
+            const alertMessage = document.getElementById("alertMessage");
+            const successMessage = document.getElementById("successMessage");
+
+            if (currentPrice > avgPrice * 1.2) {
+                alertMessage.style.display = "block";
+                successMessage.style.display = "none";
+            } else {
+                alertMessage.style.display = "none";
+            }
+
+            let videoText = "Video transcription"; //here i need support for video decoding and automatic filling in required fields
+
+            try {
+                const params = await algodClient.getTransactionParams().do();
+                const appArgs = [
+                    new Uint8Array(Buffer.from(productName)),
+                    new Uint8Array(Buffer.from(speciality)),
+                    new Uint8Array(Buffer.from(productId)),
+                    new Uint8Array(Buffer.from(lifespan)),
+                    new Uint8Array(Buffer.from(quality)),
+                    algosdk.encodeUint64(new Date(expiry).getTime()),
+                    algosdk.encodeUint64(priceYear1),
+                    algosdk.encodeUint64(priceYear2),
+                    algosdk.encodeUint64(currentPrice),
+                    algosdk.encodeUint64(estimatedPrice),
+                    new Uint8Array(Buffer.from(videoText)),
+                ];
+
+                const txn = algosdk.makeApplicationNoOpTxnFromObject({
+                    from: userWalletAddress,
+                    appIndex: appId,
+                    suggestedParams: params,
+                    appArgs: appArgs
+                });
+
+                const txn_b64 = AlgoSigner.encoding.msgpackToBase64(txn.toByte());
+                const signedTxn = await AlgoSigner.signTxn([{ txn: txn_b64 }]);
+                const sendTx = await AlgoSigner.send({ ledger: 'TestNet', tx: signedTxn[0].blob });
+                console.log("Transaction ID:", sendTx.txId);
+
+                successMessage.style.display = "block";
+            } catch (error) {
+                console.error("Error sending transaction:", error);
+                alert("Failed to update product information. Please try again.");
+            }
+        });
+
+    </script>
+    <footer style="width: 100%; background-color: #282828; color: #fff; padding: 20px; text-align: center; position: fixed; bottom: 0; left: 0;">
+      <div style="margin-bottom: 10px;">
+          <a href="./index.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Home</a>
+          <a href="./Registration.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Registration</a>
+          <a href="./productregister.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Registration</a>
+          <a href="./product.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Info</a>
+          <a href="./main.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Search</a>
+          <a href="./role.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Escrow</a>
+          <a href="./donate.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Donation</a>
+      </div>
+      <div style="margin-top: 10px;">
+          <a href="https://www.linkedin.com/in/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fab fa-linkedin"></i> LinkedIn
+          </a>
+          <a href="https://github.com/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fab fa-github"></i> GitHub
+          </a>
+          <a href="mailto:sivasankarreddyvattigunta@gmail.com" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fas fa-envelope"></i> Email
+          </a>
+      </div>
+    </footer>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+
+</body>
+</html>
