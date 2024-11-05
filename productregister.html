@@ -66,16 +66,20 @@
             color: #fff;
             padding: 20px;
             text-align: center;
-            position: fixed;
-            bottom: 0;
-            left: 0;
+            margin-bottom: 0;
+            position: relative;
         }
         footer a {
             color: #ffc107;
             text-decoration: none;
             margin: 0 10px;
         }
+        #qrcode {
+            margin-top: 20px;
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
 </head>
 <body>
     <div class="registration-container">
@@ -90,64 +94,87 @@
             <label for="quantity">Quantity</label>
             <input type="number" id="quantity" required placeholder="Enter Product Quantity">
 
-            <button type="button" class="generate-button" onclick="generateProductId()">Generate Product ID</button>
-            <p id="generatedProductId" style="color: #f9a825; margin-top: 10px; font-weight: bold;"></p>
+             <!-- New Payment Amount Field -->
+             <label for="paymentAmount">Payment Amount</label>
+             <input type="number" id="paymentAmount" required placeholder="Enter Payment Amount">
+
+             <button type="button" class="generate-button" onclick="generateProductId()">Generate Product ID and QR Code</button>
+             <p id="generatedProductId" style="color: #f9a825; margin-top: 10px; font-weight: bold;"></p>
+
+             <!-- QR Code Display -->
+             <div id="qrcode"></div>
         </form>
     </div>
 
-    <footer>
-        <div style="margin-bottom: 10px;">
-            <a href="./index.html">Home</a>
-            <a href="./Registration.html">Registration</a>
-            <a href="./productregister.html">Product Registration</a>
-            <a href="./product.html">Product Info</a>
-            <a href="./main.html">Product Search</a>
-            <a href="./role.html">Escrow</a>
-            <a href="./donate.html">Donation</a>
-        </div>
-        <div style="margin-top: 10px;">
-            <a href="https://www.linkedin.com/in/sivasankarreddyvattigunta" target="_blank">LinkedIn</a>
-            <a href="https://github.com/sivasankarreddyvattigunta" target="_blank">GitHub</a>
-            <a href="mailto:sivasankarreddyvattigunta@gmail.com">Email</a>
-        </div>
+
+
+   <script src="https://cdn.jsdelivr.net/npm/algosdk@1.14.1/dist/browser/algosdk.min.js"></script>
+   <script>
+       let userWalletAddress;
+
+       async function connectWallet() {
+           if (typeof AlgoSigner !== 'undefined') {
+               try {
+                   await AlgoSigner.connect();
+                   const accounts = await AlgoSigner.accounts({ ledger: 'TestNet' });
+                   userWalletAddress = accounts[0].address;
+                   document.getElementById("userId").value = userWalletAddress; // Set the user ID to the wallet address
+                   alert(`Wallet Connected: ${userWalletAddress}`);
+               } catch (error) {
+                   console.error("Wallet connection failed:", error);
+                   alert("Failed to connect wallet. Please try again.");
+               }
+           } else {
+               alert('Please install the Algorand supported wallet extension.');
+           }
+       }
+
+       window.onload = connectWallet;
+
+       function generateProductId() {
+           const productName = document.getElementById("productName").value.trim();
+           const quantity = document.getElementById("quantity").value.trim();
+           const paymentAmount = document.getElementById("paymentAmount").value.trim();
+
+           if (!userWalletAddress || !productName || !quantity || !paymentAmount) {
+               alert("Please fill in all fields.");
+               return;
+           }
+
+           const productId = `P-${userWalletAddress.substring(0, 6)}-${productName.substring(0, 3).toUpperCase()}-${quantity}`;
+           document.getElementById("generatedProductId").innerText = `Generated Product ID: ${productId}`;
+
+
+           const qrData = `Product ID:${productId}\nPayment Amount:${paymentAmount}`;
+           $('#qrcode').empty();
+           $('#qrcode').qrcode({
+               text : qrData,
+               width : 128,
+               height : 128
+           });
+       }
+       <footer style="width: 100%; background-color: #282828; color: #fff; padding: 20px; text-align: center; position: fixed; bottom: 0; left: 0;">
+      <div style="margin-bottom: 10px;">
+          <a href="./index.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Home</a>
+          <a href="./Registration.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Registration</a>
+          <a href="./productregister.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Registration</a>
+          <a href="./product.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Info</a>
+          <a href="./main.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Product Search</a>
+          <a href="./role.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Escrow</a>
+          <a href="./donate.html" style="color: #ffc107; text-decoration: none; margin: 0 10px;">Donation</a>
+      </div>
+      <div style="margin-top: 10px;">
+          <a href="https://www.linkedin.com/in/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fab fa-linkedin"></i> LinkedIn
+          </a>
+          <a href="https://github.com/sivasankarreddyvattigunta" target="_blank" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fab fa-github"></i> GitHub
+          </a>
+          <a href="mailto:sivasankarreddyvattigunta@gmail.com" style="color: #ffc107; text-decoration: none; margin: 0 10px;">
+              <i class="fas fa-envelope"></i> Email
+          </a>
+      </div>
     </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/algosdk@1.14.1/dist/browser/algosdk.min.js"></script>
-    <script>
-        let userWalletAddress;
-
-        async function connectWallet() {
-            if (typeof AlgoSigner !== 'undefined') {
-                try {
-                    await AlgoSigner.connect();
-                    const accounts = await AlgoSigner.accounts({ ledger: 'TestNet' });
-                    userWalletAddress = accounts[0].address;
-                    document.getElementById("userId").value = userWalletAddress; // Set the user ID to the wallet address
-                    alert(`Wallet Connected: ${userWalletAddress}`);
-                } catch (error) {
-                    console.error("Wallet connection failed:", error);
-                    alert("Failed to connect wallet. Please try again.");
-                }
-            } else {
-                alert('Please install the Algorand supported wallet extension.');
-            }
-        }
-
-
-        window.onload = connectWallet;
-
-        function generateProductId() {
-            const productName = document.getElementById("productName").value;
-            const quantity = document.getElementById("quantity").value;
-
-            if (!userWalletAddress || !productName || !quantity) {
-                alert("Please fill in all fields.");
-                return;
-            }
-
-            const productId = `P-${userWalletAddress.substring(0, 6)}-${productName.substring(0, 3).toUpperCase()}-${quantity}`;
-            document.getElementById("generatedProductId").innerText = `Generated Product ID: ${productId}`;
-        }
-    </script>
+   </script>
 </body>
 </html>
